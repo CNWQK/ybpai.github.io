@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>元宝聚</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      font-size: 36px;
+      text-align: center;
+      margin: 20px 0;
+      color: #333;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 20px;
+    }
+    .disclaimer {
+      color: #999;
+      font-size: 14px;
+      text-align: center;
+      margin: 20px 0;
+      padding: 10px 0;
+      border-top: 1px solid #ddd;
+      border-bottom: 1px solid #ddd;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .group-name {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    .group-id {
+      color: #666;
+      font-size: 14px;
+      background: #f9f9f9;
+      padding: 5px 10px;
+      border-radius: 5px;
+      display: inline-block;
+    }
+    .join-btn {
+      width: 100%;
+      padding: 12px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: background 0.3s;
+    }
+    .join-btn:hover {
+      background: #45a049;
+    }
+    .join-btn:disabled {
+      background: #cccccc;
+      cursor: not-allowed;
+    }
+    .refresh-btn {
+      width: 100%;
+      padding: 10px;
+      background: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .contact {
+      font-size: 12px;
+      color: #888;
+      text-align: center;
+      margin-top: 30px;
+    }
+    .loading {
+      text-align: center;
+      color: #666;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>元宝聚</h1>
+  <div class="subtitle">元宝派共享平台</div>
+  <div class="disclaimer">本平台不为任何元宝派提供内容负责，仅负责分享，请谨慎选择加入</div>
+  
+  <div id="group-card" class="card">
+    <div class="loading">加载中...</div>
+  </div>
+  
+  <button id="refresh-btn" class="refresh-btn">换一个</button>
+  
+  <div class="contact">
+    如需添加元宝派，请联系: 093184.xyz@gmail.com<br>
+    带上邀请链接和码
+  </div>
+
+  <script>
+    // 配置文件URL
+    const CONFIG_URL = "https://raw.githubusercontent.com/CNWQK/CNWQK/main/config.json";
+    
+    // 获取随机元宝派
+    async function getRandomGroup() {
+      try {
+        const response = await fetch(CONFIG_URL);
+        if (!response.ok) {
+          throw new Error('无法加载配置文件');
+        }
+        
+        const config = await response.json();
+        const groups = config.groups || [];
+        
+        if (groups.length === 0) {
+          return null;
+        }
+        
+        // 随机选择一个派
+        const randomIndex = Math.floor(Math.random() * groups.length);
+        return groups[randomIndex];
+      } catch (error) {
+        console.error('获取数据失败:', error);
+        return null;
+      }
+    }
+    
+    // 更新UI显示
+    async function updateGroupDisplay() {
+      const card = document.getElementById('group-card');
+      card.innerHTML = '<div class="loading">加载中...</div>';
+      
+      const group = await getRandomGroup();
+      
+      if (!group) {
+        card.innerHTML = '<div>暂无可用元宝派</div>';
+        return;
+      }
+      
+      const isFull = group.members >= 100;
+      
+      card.innerHTML = `
+        <div class="group-name">${group.name}</div>
+        <div class="group-id">ID: ${group.gid}</div>
+        <button id="join-btn" class="join-btn" ${isFull ? 'disabled' : ''}>
+          ${isFull ? '派已满员' : '点击加入'}
+        </button>
+      `;
+      
+      // 添加点击事件
+      const joinBtn = document.getElementById('join-btn');
+      if (joinBtn && !isFull) {
+        joinBtn.addEventListener('click', () => {
+          window.location.href = group.invite_link;
+        });
+      }
+    }
+    
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      updateGroupDisplay();
+      
+      // 刷新按钮事件
+      document.getElementById('refresh-btn').addEventListener('click', updateGroupDisplay);
+    });
+  </script>
+</body>
+</html>
